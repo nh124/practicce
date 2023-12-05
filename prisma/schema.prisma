@@ -9,14 +9,23 @@ datasource db {
     provider = "mysql"
     url      = env("DATABASE_URL")
 }
+enum Role {
+  SELLER
+  CUSTOMER
+}
 
 model User {
-  id       Int      @id @default(autoincrement())
-  userId   String   @unique
+  id   String   @id @unique(map: "unique_userId_constraint")
   name     String
   listings Listing[]
-  @@index([id, userId])
-  @@unique([id, userId])
+  sellerId String?
+  seller   User?    @relation("UserList", fields: [sellerId], references: [id])
+  customerId Int?
+  customers User[]  @relation("UserList")
+  role     String
+
+  @@index([id])
+  @@unique([id])
 }
 
 model Listing {
@@ -26,8 +35,7 @@ model Listing {
   name        String
   description String
   price       Float
-  ownerId     Int
-  ownerClerkId String
-  owner       User     @relation(fields: [ownerId, ownerClerkId], references: [id, userId])
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id])
   @@index([id, ownerId])
 }

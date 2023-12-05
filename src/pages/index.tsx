@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import Head from "next/head";
 import Link from "next/link";
 import AddItem from "~/Components/AddItem";
@@ -10,25 +11,29 @@ import { useEffect } from "react";
 const Home: NextPage = () => {
   const { isSignedIn, user } = useUser();
 
+  enum Role {
+    CUSTOMER,
+    SELLER,
+  }
   const list = api.listings.list.useQuery();
   const createUser = api.users.create.useMutation();
+
   const AddUser = async () => {
-    if (!isSignedIn) return;
-    await createUser.mutateAsync({ name: user?.fullName });
+    if (!isSignedIn) return "user not signed in";
+    await createUser.mutateAsync({ name: user?.fullName, role: "SELLER" });
   };
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        AddUser();
-        // Do something after the user is added, if needed
-      } catch (error) {
-        console.error("Error adding user:", error);
-        // Handle the error, if needed
-      }
+      AddUser()
+        .then(() => {
+          console.log("User Added Successfully");
+        })
+        .catch((error) => {
+          console.error("Error adding user:", error);
+        });
     };
-
     fetchData();
-  }, []);
+  }, [isSignedIn]);
 
   return (
     <>
